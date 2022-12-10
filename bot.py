@@ -49,6 +49,8 @@ def get_user():
                     except vk_api.exceptions.ApiError:
                         write_msg(event.user_id, f'Ошибка api Вконтакте', None)
                         continue
+                    except None:
+                        continue
                     else:
                         shown_couple.clear()
                         gоt_user.clear()
@@ -61,30 +63,38 @@ def get_user():
                 break
 
 def get_offered_people():
-    birth_year = int(gоt_user[0]["bdate"][-4:])
-    current_year = date.today().year
-    age = current_year - birth_year
+    if gоt_user[0] != None:
+        birth_year = int(gоt_user[0]["bdate"][-4:])
+        current_year = date.today().year
+        age = current_year - birth_year
 
-    sex = 0
-    if gоt_user[0]["sex"] == 1:
-        sex += 2
+        sex = 0
+        if gоt_user[0]["sex"] == 1:
+            sex += 2
+        else:
+            sex += 1
+        user_city = gоt_user[0]["city"]["id"]
+        relation = gоt_user[0]["relation"]
+        try:
+            offered_people = vk_client.search_people(age - 1, age + 1, sex, user_city, relation, offset)
+        except vk_api.exceptions.ApiError:
+            write_msg(event.user_id, f'Ошибка api Вконтакте', None)
+        else:
+            if offered_people != None:
+                return offered_people
+            else:
+                write_msg(event.user_id, f'Не удалось найти подходящу пару.\
+                                Измените параметры профиля или повторите попытку позже', None)
     else:
-        sex += 1
-    user_city = gоt_user[0]["city"]["id"]
-    relation = gоt_user[0]["relation"]
-    try:
-        offered_people = vk_client.search_people(age - 1, age + 1, sex, user_city, relation, offset)
-    except vk_api.exceptions.ApiError:
-        write_msg(event.user_id, f'Ошибка api Вконтакте', None)
-    else:
-        return offered_people
+        write_msg(event.user_id, f'Не удалось обнаружить пользователя', None)
 
 def get_people_ids():
     people_ids = []
     for people in get_offered_people():
         if people['is_closed'] == False:
             people_info = (people["id"], f'{people["first_name"]} {people["last_name"]}')
-            people_ids.append(people_info)
+            if people_info != None:
+                people_ids.append(people_info)
     return people_ids
 
 def get_whole_info():
@@ -98,10 +108,11 @@ def get_whole_info():
             write_msg(event.user_id, f'Ошибка api Вконтакте', None)
 
         photos_ids = {}
-        if len(all_photos) >= 3:
-            for photo in all_photos:
-                photos_ids[(photo["id"])] = photo["comments"]["count"] + photo["likes"][
-                             "count"] + photo["likes"]["user_likes"]
+        if all_photos != None:
+            if len(all_photos) >= 3:
+                for photo in all_photos:
+                    photos_ids[(photo["id"])] = photo["comments"]["count"] + photo["likes"][
+                                 "count"] + photo["likes"]["user_likes"]
         sorted_ids = (sorted(photos_ids.items(), key=lambda x: x[1]))[-3:]
         only_ids = []
         for id in sorted_ids:
@@ -116,7 +127,6 @@ def run():
     for event in longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW and event.to_me and event.text:
                 request = event.text
-                # if request.lower() == "поиск" or request.lower() == "search":
                 get_offered_people()
                 get_people_ids()
                 get_whole_info()
