@@ -23,7 +23,7 @@ def write_msg(user_id, message, attachment):
     vk_session.method("messages.send", {"user_id": user_id, "message": message, "attachment": attachment,  "random_id": get_random_id()})
 
 offset = 0
-gоt_user = []
+got_user = []
 shown_couple = []
 
 def get_user():
