@@ -30,8 +30,15 @@ class Vkinder:
             pass
         except KeyError:
             pass
+        except:
+            print("Error")
         else:
-            return response
+            if response is not None:
+                return response
+            else:
+                print("get_params() function has returned None object")
+                pass
+
 
     def search_people(self, age_from, age_to, sex, city, status, offset, sorting: int = 0, count: int = 50): #Функция для получения списка людей по подходящим параметрам
         params = {
@@ -51,8 +58,14 @@ class Vkinder:
             pass
         except KeyError:
             pass
+        except:
+            print("Error")
         else:
-            return response
+            if response is not None:
+                return response
+            else:
+                print("search_people() function has returned None object")
+                pass
 
     def get_photos(self, owner_id, album_id = "profile", photo_sizes = 1, extended = 1): #Функция для получения списка фотографий профиля и id выбранного пользователя
         params = {
@@ -68,8 +81,14 @@ class Vkinder:
             pass
         except KeyError:
             pass
+        except:
+            print("Error")
         else:
-            return response
+            if response is not None:
+                return response
+            else:
+                print("get_photos() function has returned None object")
+                pass
 
 
 vk_client = Vkinder(token=token, api_version="5.131")
